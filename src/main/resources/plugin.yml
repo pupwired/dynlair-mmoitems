@@ -1,0 +1,8 @@
+name: DynlairMMOItems
+version: ${project.version}
+main: net.crimsoningot.dynlair.mmoitems.DynlairMMOItemsPlugin
+api-version: '1.21'
+description: Dynlair hook that documents MMOItems item types, stats and tagged items.
+# Both are hard dependencies. MMOItems must load first so our onLoad() can register
+# the DYNLAIR stat before MMOItems reads its item files in its own onEnable().
+depend: [DynlairCore, MMOItems]

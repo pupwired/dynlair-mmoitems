@@ -1,0 +1,4 @@
+tagging:
+  # opt-in: only items with `dynlair: true` under `base:` are exported.
+  # all:    export every item and ignore the tag (handy for a first test).
+  mode: opt-in
