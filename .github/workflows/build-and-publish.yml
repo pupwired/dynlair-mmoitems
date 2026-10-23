@@ -1,0 +1,42 @@
+name: Build Java Project
+
+# Trigger the workflow only on a push to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Check out the repository source code
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # 2. Set up the Java Development Kit (JDK)
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'          # Change to your required Java version (e.g., 8, 11, 21)
+        distribution: 'temurin'     # Choose your preferred distribution
+        cache: 'maven'              # Options: 'maven' or 'gradle' to speed up builds
+
+    # Step to extract the version dynamically
+    - name: Extract Maven Project Version
+      id: get_version
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    # 3. Build the project using Maven or Gradle
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    # 4. Upload the built artifact so it's available in GitHub downloads
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dynlair-core-${{ steps.get_version.outputs.version }}
+        path: target/*.jar                      

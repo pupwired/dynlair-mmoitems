@@ -1,0 +1,59 @@
+name: Check Maven Version Bump
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'pom.xml' # Only runs if pom.xml changes, or remove this line to run on every PR
+
+jobs:
+  compare-versions:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout the Pull Request branch
+      - name: Checkout PR Branch
+        uses: actions/checkout@v4
+
+      # 2. Get PR Version
+      - name: Get PR Version
+        id: pr_version
+        run: |
+          PR_VER=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "PR version is $PR_VER"
+          echo "version=$PR_VER" >> $GITHUB_OUTPUT
+
+      # 3. Checkout the main branch to compare
+      - name: Checkout Main Branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      # 4. Get Main Version
+      - name: Get Main Version
+        id: main_version
+        run: |
+          MAIN_VER=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Main version is $MAIN_VER"
+          echo "version=$MAIN_VER" >> $GITHUB_OUTPUT
+
+      # 5. Compare Versions using Python (handles complex semantic versioning)
+      - name: Compare Versions
+        shell: python
+        run: |
+          import sys
+          from packaging.version import parse
+
+          pr_ver = "${{ steps.pr_version.outputs.version }}"
+          main_ver = "${{ steps.main_version.outputs.version }}"
+
+          print(f"Comparing PR version ({pr_ver}) against Main version ({main_ver})")
+
+          # Handle snapshot stripping if you just want to compare base numbers, 
+          # or rely on standard packaging comparison.
+          if parse(pr_ver) <= parse(main_ver):
+              print("❌ ERROR: Pull Request version must be greater than Main branch version.")
+              sys.exit(1)
+          
+          print("✅ SUCCESS: Version has been successfully b
+          umped.")
